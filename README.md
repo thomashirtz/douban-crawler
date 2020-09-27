@@ -1,6 +1,6 @@
 # douban-crawler
 
-This repository contain a very simple crawler for retrieving movies from the site douban. This is a modified version of [this](https://github.com/jctian96/douban-web-crawler) webcrawler. Therefore all the credits goes to him. I decided to keep the core code of his crawler but simplify it to get the data into pickled dataframes. 
+This repository contain a very simple crawler for retrieving movies from the site douban. This is a modified version of [this](https://github.com/jctian96/douban-web-crawler) webcrawler. Therefore, all the credits goes to [jctian96](https://github.com/jctian96). I decided to keep the core code of his crawler but simplify it to get the data crawled directly into dataframes. 
 
 ## Crawler principle
 
