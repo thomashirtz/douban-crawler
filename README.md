@@ -27,6 +27,9 @@ Several sorting styles exist:
 Moreover, if you sort by "Recent" or if you crawl more less known material, there is a Movies/TV Shows without any rating, using the query "rating" with a value superior to 0 allows to avoid the issue of downloading Material that doesn't have any rating.
 This issue is especially pronounced when sorting by "Recently released".
 
+## Data processing
+A Notebook is avalaible to show how the data can be read.
+
 ## Notes
 Many pages on douban have some sort of mitigation to crawl. The page will not load before a certain action is taken. The use of the previously mentionned link is very useful to avoid this issue.  
 
