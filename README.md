@@ -2,7 +2,7 @@
 
 This repository contains a very simple crawler for retrieving movies from the site douban. This is a modified version of [this](https://github.com/jctian96/douban-web-crawler) web crawler. Therefore, all the credits go to [jctian96](https://github.com/jctian96). I decided to keep the core code of his crawler but simplify it to get the data crawled directly into dataframes. 
 
-## Crawler principle
+## Principles
 
 The principle is to create a query on this webpage [https://movie.douban.com/j/new_search_subjects?](https://movie.douban.com/j/new_search_subjects?) with some search queries such as type, rating score, etc.  
 The different queries can be found using this URL [https://movie.douban.com/tag/#/](https://movie.douban.com/tag/#/). By selecting a query it is possible to know how to change the URL to affine the research. To combine several tags, for example, '中国大陆' and '电视剧', a comma need to be used '中国大陆,电视剧'  
