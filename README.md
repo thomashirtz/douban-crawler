@@ -27,7 +27,7 @@ Several sorting styles exist:
 Crawling a large amount of movies or crawling the most recent movies will lead to find more "obscure" or less known material that does not have any rating. In this case, using the query "rating" with a value superior to 0 will discard any material that doesn't have a rating. Therefore cleaning quite a bit the data obtained.
 
 ## How to used the crawled data ?
-A Notebook is available to show how the data can be utilized afterward.
+A [notebook](notebook.ipynb) is available to show how the data can be utilized afterward.
 
 ![Dataframe](dataframe.jpg)
 
