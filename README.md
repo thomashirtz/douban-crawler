@@ -29,6 +29,8 @@ Crawling a large amount of movies or crawling the most recent movies will lead t
 ## How to used the crawled data ?
 A Notebook is available to show how the data can be utilized afterward.
 
+![Dataframe](dataframe.jpg)
+
 ## Notes
 Many pages on douban have some sort of mitigation to crawl. The page will not load before a certain action is taken. The use of [the previously mentioned link](https://movie.douban.com/j/new_search_subjects?) with search queries is very useful to avoid those issues.  
 
