@@ -3,19 +3,61 @@ import json
 import time
 import requests
 from lxml import etree
+import argparse
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
+from sqlalchemy import create_engine, Column, Integer, String, Float
+
+
+# Parser
+query_tags_help = """Tags used for the query. It is possible to choose 0 or 1 tag from each list.
+The tags need to be separated by commas.
+
+Types: 电影,电视剧,综艺,动画,纪录片,短片
+Genres: 剧情,爱情,喜剧,科幻,动作,悬疑,犯罪,恐怖,青春,励志,战争,文艺,
+        黑色,幽默,传记,情色,暴力,音乐,家庭
+Region: 大陆,美国,香港,台湾,日本,韩国,英国,法国,德国,意大利,西班牙,
+        印度,泰国,俄罗斯,伊朗,加拿大,澳大利亚,爱尔兰,瑞典,巴西,丹麦
+Features: 经典,冷门佳片,魔幻,黑帮,女性
+
+'中国大陆,电视剧' is a valid set of query tags.
+
+"""
+
+rating_range_help = """ Rating range used for the queries.
+
+The rating range must be specified this way: 'low,high'
+Setting 0 as the lower bound will discard any movie that has no rating yet.
+
+'5,10' is a valid rating range.
+
+"""
+
+sorting_preference_help = """ Sorting preferences. Need to be chosen among several choices:
+
+Highest amount of rating: 'T'
+Highest rating: 'S'
+Latest release: 'R'
+Recently popular: 'U'
+
+'U' is a valid sorting preference.
+"""
+
+parser = argparse.ArgumentParser(description='Crawler for the movie.douban.com website',
+                                 formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-q', '--query-tags', type=str, metavar='', help=query_tags_help, default='中国大陆,电视剧')
+parser.add_argument('-r', '--rating-range', type=str, metavar='', help=rating_range_help, default=None)
+parser.add_argument('-s', '--sorting-preference', type=str, metavar='', help=sorting_preference_help, default='R')
+args = parser.parse_args()
 
 
 Base = declarative_base()
 
 
-class TVShow(Base):
-    __tablename__ = "tv_show"
+class Movie(Base):
+    __tablename__ = "movie"
 
     id = Column('id', Integer, primary_key=True)
     title = Column('title', String, index=True)
@@ -30,7 +72,7 @@ class TVShow(Base):
     production_countries_regions = Column('production_countries_regions', String)
 
     def __repr__(self):
-        return f"<TVShow(id='{self.id}', name='{self.title}', initial_release_date='{self.initial_release_date}')>"
+        return f"<Movie(id='{self.id}', name='{self.title}', initial_release_date='{self.initial_release_date}')>"
 
 
 def database_initialization(database_name, echo: bool = False, drop_all=False):
@@ -52,19 +94,10 @@ def silent_insert(session, instance):
 
 
 # Change the user agent name before starting crawling
-request_headers = {'User-Agent': 'learning_chinese_with_tv_shows'}
-
-# Sorting parameters # TODO parsing
-query_tags = '中国大陆,电视剧'
-rating_range = '5,10'
-sorting_preference = 'R'
-
-# Saving parameters
-filename = 'recent_tvshows.pkl'
-saving_frequency = 2
+request_headers = {'User-Agent': 'learning_chinese_with_movies'}
 
 
-def main():
+def main(sorting_preference, query_tags, rating_range):
     counter = 0
     session, _ = database_initialization(database_name='database', drop_all=True)
 
@@ -74,8 +107,8 @@ def main():
         query_string = {
             'sort': sorting_preference,
             'tags': query_tags,
-            'start': start_offset,
-            'range': rating_range
+            'range': rating_range,
+            'start': start_offset
         }
 
         response = requests.get(url=search_page_url, params=query_string, headers=request_headers)
@@ -128,12 +161,12 @@ def main():
             # Print out some information in the console to keep track of the progress.
             print(data['title'], data['rate'], data['rating_people'], data['directors'], data['genres'], data['production_countries_regions'], data['initial_release_date'])
 
-            # Append the movie to the list
-            silent_insert(session, TVShow(**data))
+            # Insert the instance to the database
+            silent_insert(session, Movie(**data))
             time.sleep(0.1)
 
         counter += 1
 
 
 if __name__ == '__main__':
-    main()
+    main(sorting_preference=args.sorting_preference, query_tags=args.query_tags, rating_range=args.rating_range)
