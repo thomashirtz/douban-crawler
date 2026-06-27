@@ -1,0 +1,8 @@
+.venv/
+.idea/
+data/*
+!data/.gitkeep
+*.db
+__pycache__/
+*.pyc
+/douban_crawler.egg-info/

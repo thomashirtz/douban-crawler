@@ -1,38 +1,75 @@
 # douban-crawler
 
-This repository contains a very simple crawler for retrieving movies from the site douban. This is a modified version of [this](https://github.com/jctian96/douban-web-crawler) web crawler. Therefore, all the credits go to [jctian96](https://github.com/jctian96). I decided to keep the core code of his crawler but simplify it to get the data crawled directly into dataframes. 
+A simple crawler for [Douban movies](https://movie.douban.com). Modified from [jctian96/douban-web-crawler](https://github.com/jctian96/douban-web-crawler); credits to [jctian96](https://github.com/jctian96).
 
-## Principles
+Results are stored as JSONL (no database). Browse and filter them in a small Dash dashboard.
 
-The principle is to create a query on this webpage [https://movie.douban.com/j/new_search_subjects?](https://movie.douban.com/j/new_search_subjects?) with some search queries such as type, rating score, etc.  
-The different queries can be found using this URL [https://movie.douban.com/tag/#/](https://movie.douban.com/tag/#/). By selecting a query it is possible to know how to change the URL to affine the research. To combine several tags, for example, '中国大陆' and '电视剧', a comma need to be used '中国大陆,电视剧'  
+## Setup
 
-### Tags
-the different tags and tag categories are :
-* Types: 电影,电视剧,综艺,动画,纪录片,短片
-* Genres: 剧情,爱情,喜剧,科幻,动作,悬疑,犯罪,恐怖,青春,励志,战争,文艺,黑色,幽默,传记,情色,暴力,音乐,家庭
-* Region: 大陆,美国,香港,台湾,日本,韩国,英国,法国,德国,意大利,西班牙,印度,泰国,俄罗斯,伊朗,加拿大,澳大利亚,爱尔兰,瑞典,巴西,丹麦
-* Features: 经典,冷门佳片,魔幻,黑帮,女性
+Dependencies are declared in [`pyproject.toml`](pyproject.toml). From the project root:
 
-It does not seem possible to choose several tags per category. For example, it is not possible to choose "电影,电视剧", it will only search one of them (The first one I believe). However, it is possible to choose '电影,美国' since 'Movie and United States does not belong to the same category.
+```bash
+pip install -e .
+```
 
-### Sorting Style
-Several sorting styles exist:
-* Highest amount of rating: "T"
-* Highest rating: "S"
-* Latest release: "R"
-* Recently popular: "U"
+This installs the package and registers the `dc` command.
+## Usage
 
-### Rating range
-Crawling a large amount of movies or crawling the most recent movies will lead to find more "obscure" or less known material that does not have any rating. In this case, using the query "rating" with a value superior to 0 will discard any material that doesn't have a rating. Therefore cleaning quite a bit the data obtained.
+Edit defaults in [`douban_crawler/default.py`](douban_crawler/default.py), or override via CLI flags.
 
-## How to used the crawled data ?
-A [notebook](notebook.ipynb) is available to show how the data can be utilized afterward.
+```bash
+# Crawl → data/movies.jsonl
+dc crawl
 
-![Dataframe](dataframe.jpg)
+# Custom query
+dc crawl -q 电影,美国 -s S -r 7,10
+
+# Dashboard → http://127.0.0.1:8050
+dc dashboard
+```
+
+Backward-compatible:
+
+```bash
+python -m douban_crawler          # same as dc crawl
+python -m douban_crawler.cli dashboard
+```
+
+### CLI options (`dc crawl`)
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-q`, `--query-tags` | `华语,电视剧` | Comma-separated Douban tags |
+| `-r`, `--rating-range` | none | e.g. `5,10` or `0,10` to skip unrated |
+| `-s`, `--sorting-preference` | `T` | `T` (most ratings), `S` (highest), `R` (latest), `U` (recent) |
+| `-o`, `--output` | `data/movies.jsonl` | Output file |
+| `--workers` | `4` | Parallel mobile detail fetches per search page |
+| `--delay` | `1.5` | Min random pause between pages (max ~×2.5) |
+
+### Dashboard options (`dc dashboard`)
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--port` | `8050` | Port to listen on |
+| `--no-debug` | off | Disable Dash debug/reloader |
+
+## Tags
+
+Pick 0 or 1 tag per category, comma-separated. See [Douban tag page](https://movie.douban.com/tag/#/) for combinations.
+
+- **Types:** 电影, 电视剧, 综艺, 动画, 纪录片, 短片
+- **Genres:** 剧情, 爱情, 喜剧, 科幻, 动作, 悬疑, 犯罪, 恐怖, 青春, 励志, 战争, 文艺, 黑色, 幽默, 传记, 情色, 暴力, 音乐, 家庭
+- **Region:** 大陆, 美国, 香港, 台湾, 日本, 韩国, 英国, 法国, 德国, 意大利, 西班牙, 印度, 泰国, 俄罗斯, 伊朗, 加拿大, 澳大利亚, 爱尔兰, 瑞典, 巴西, 丹麦
+- **Features:** 经典, 冷门佳片, 魔幻, 黑帮, 女性
+
+Example: `中国大陆,电视剧` is valid. `电影,美国` is valid (different categories). `电影,电视剧` is not (same category).
 
 ## Notes
-Many pages on douban have some sort of mitigation to crawl. The page will not load before a certain action is taken. The use of [the previously mentioned link](https://movie.douban.com/j/new_search_subjects?) with search queries is very useful to avoid those issues.  
 
+Each title is enriched via the mobile API (`m.douban.com/rexxar/api/v2/...`) for vote count, genres, country, and release date (+1 HTTP per movie, parallelized with `--workers`).
 
+Change `USER_AGENT` in `default.py` before crawling. Each crawl overwrites the output file. Failed requests retry up to 5 times with random waits; tune `DELAY_MIN` / `DELAY_MAX` / `RETRY_DELAY_*` in `default.py` if Douban rate-limits you.
 
+Output goes to `data/movies.jsonl` at the **project root** (next to `pyproject.toml`), not inside the package — works regardless of which directory you run `dc` from.
+
+`script_writers` is not exposed by the mobile API.

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "douban-crawler"
+version = "0.2.0"
+description = "Simple Douban movie crawler with JSONL storage and Dash dashboard"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "pandas",
+    "dash",
+]
+
+[project.scripts]
+dc = "douban_crawler.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["douban_crawler*"]
